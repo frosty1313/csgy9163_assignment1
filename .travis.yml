@@ -1,6 +1,5 @@
 script:
-  - sudo apt install -y build-essential
-  - sudo apt install -y check
+  - sudo apt install -y build-essential check
   - make
 
 compiler: gcc
