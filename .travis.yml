@@ -1,5 +1,7 @@
+dist: bionic
+
 script:
-  - sudo apt install -y build-essential check
+  - make get-deps
   - make
 
 compiler: gcc
