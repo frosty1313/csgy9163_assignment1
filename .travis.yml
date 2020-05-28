@@ -1,5 +1,6 @@
 script:
-  - make get-deps
+  - sudo apt install -y build-essential
+  - sudo apt install -y check
   - make
 
 compiler: gcc
