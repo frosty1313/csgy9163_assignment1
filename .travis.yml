@@ -2,7 +2,12 @@ dist: bionic
 
 script:
   - sudo apt install -y build-essential
-  - sudo apt install -y check
+  - wget https://github.com/libcheck/check/releases/download/0.10.0/check-0.10.0.tar.gz
+  - tar xvf check-0.10.0.tar.gz
+  - (cd check-0.10.0 && ./configure)
+  - (cd check-0.10.0 && make)
+  - (cd check-0.10.0 && make check)
+  - (cd check-0.10.0 && make install)
   - make
 
 compiler: gcc
