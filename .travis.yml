@@ -1,0 +1,7 @@
+script:
+  - make get-deps
+  - make
+
+compiler: gcc
+
+language: c
