@@ -2,8 +2,8 @@ dist: bionic
 
 script:
   - sudo apt -y update > /dev/null
-  - sudo apt install -y build-essential check > /dev/null
-  #- sudo apt-get install -y check > /dev/null
+  - sudo apt install -y build-essential check
+  
   #- make
 
 compiler: gcc
