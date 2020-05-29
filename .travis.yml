@@ -4,7 +4,7 @@ script:
   #- sudo apt -y update > /dev/null
   #- sudo apt install -y build-essential check
   make get-deps
-  make clean
+  # make clean
   make test
   #- make
 
