@@ -1,16 +1,9 @@
 dist: bionic
 
 script:
-  - sudo apt-get install -y build-essential
-  - wget http://archive.ubuntu.com/ubuntu/pool/universe/c/check/check_0.10.0-3build2_amd64.deb
-  - sudo apt install check_0.10.0-3build2_amd64.deb
-  # For some reason, sudo apt-get install -y check keeps failing on Travis
-  #- wget https://github.com/libcheck/check/releases/download/0.10.0/check-0.10.0.tar.gz
-  #- tar xvf check-0.10.0.tar.gz
-  #- (cd check-0.10.0 && ./configure > /dev/null)
-  #- (cd check-0.10.0 && make > /dev/null)
-  #- (cd check-0.10.0 && make check > /dev/null)
-  #- (cd check-0.10.0 && make install > /dev/null)
+  - sudo apt-get install -y build-essential > /deb/null
+  - sudo dpkg -i check.deb
+  - sudo apt install -f
   #- make
 
 compiler: gcc
