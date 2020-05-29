@@ -1,55 +1,203 @@
-bool check_word(string word, hashmap hashtable[])
-{
-  /*
-    Set int bucket to the output of hash_function(word).
-    Set hashmap_t cursor equal to hashmap[bucket].
-    While cursor is not NULL:
-        If word equals cursor->word:
-            return True.
-        Set curosr to cursor->next.
-    Set int bucket to the output of hash_function(word).
-    Set hashmap_t cursor equal to hashmap[bucket].
-    While cursor is  not NULL:
-        If lower_case(word) equals curosr->word:
-            return True.
-        Set curosr to cursor->next.
-    return False.
-  */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "dictionary.h"
+
+bool is_upper(char c) {
+  return (c >= 65 && c <= 90);
 }
 
-bool load_dictionary(string dictionary, hashmap hashtable[])
-{
-  /*
-    Initialize all values in hash table to NULL.
-    Open dict_file from path stored in dictionary.
-    If dict_file is NULL:
-        return false.
-    While word in dict_file is not EOF (end of file):
-        Set hashmap_t new_node to a new node.
-        Set new_node->next to NULL.
-        Set new_node->word equal to word.
-        Set int bucket to hash_function(word).
-        if hashtable[bucket] is NULL:
-            Set hashtable[bucket] to new_node.
-        else:
-            Set new_node->next to hashtable[bucket].
-            Set hashtable[bucket] to new_node.
-    Close dict_file.
-  */
+bool is_lower(char c) {
+  return (c >= 97 && c <= 122);
 }
 
-int check_words(file fp, hashmap hashtable[], string misspelled[])
-{
-  /*
-    Set int num_misspelled to 0.
-    While line in fp is not EOF (end of file):
-        Read the line.
-        Split the line on spaces.
-        For each word in line:
-            Remove punctuation from beginning and end of word.
-            If not check_word(word):
-                Append word to misspelled.
-                Increment num_misspelled.
-    Return num_misspelled.
-  */
+bool is_apostraphe(char c) {
+  return c == 39;
 }
+
+/*
+  Accepts upper case, lower case or apostraphe's
+*/
+bool is_valid_char(char c) {
+  return is_lower(c) || is_upper(c) || is_apostraphe(c);
+}
+
+/*
+  Convert a word to lower case and strip trailing punctuation.
+*/
+char* prep_word(const char* word) {
+  char* cleaned = (char *)calloc(1, LENGTH);
+
+  for (int i = 0; i < strlen(word); i++) {
+    if (is_upper(word[i]))
+      cleaned[i] = word[i] + 32;
+    //Already lower case or a single quote for possessive
+    else
+      cleaned[i] = word[i];
+  }
+
+  // Strip trailing bad chars
+  for (int i = strlen(word)-1; i >= 0; i--) {
+    if (!(is_valid_char(word[i]))) {
+      cleaned[i] = '\0';
+    } else {
+      break;
+    }
+  }
+
+  return cleaned;
+}
+
+/**
+ * Returns true if word is in dictionary else false.
+ */
+/**
+ * Inputs:
+ *  word:       A word to check the spelling of.
+ *  hashtable:  The hash table used to determine spelling
+ *
+ * Returns:
+ *  bool:       A boolean value indicating if the word was correctly spelled.
+ *
+ * Modifies:
+ *
+ * Example:
+ *  bool correct  = check_word(word, hashtable);
+ **/
+bool check_word(const char* word, hashmap_t hashtable[])
+{
+  if (word == NULL)
+    return false;
+
+  if (strlen(word) > LENGTH || strlen(word) < 1)
+    return false;
+
+  char* cleaned = prep_word(word);
+  //printf("Got: %s; Cleaned: %s\n", word, cleaned);
+  int bucket = hash_function(cleaned);
+  node* cursor = hashtable[bucket];
+  bool ret = false;
+  while (cursor) {
+    if (strcmp(cursor->word, cleaned) == 0)
+      ret = true;
+
+    cursor = cursor->next;
+  }
+
+  free(cleaned);
+  return ret;
+}
+
+/**
+ * Loads dictionary into memory.  Returns true if successful else false.
+ */
+/**
+ * Inputs:
+ *  dictionary_file:    Path to the words file.
+ *  hashtable:          The hash table to be populated.
+ *
+ * Returns:
+ *  bool:       Whether or not the hashmap successfully populated.
+ *
+ * Modifies:
+ *  hashtable: This hashmap should be filled with words from the file provided.
+ *
+ * Example:
+ *  bool success = load_dictionary("wordlist.txt", hashtable);
+ **/
+bool load_dictionary(const char* dictionary_file, hashmap_t hashtable[])
+{
+  if (dictionary_file == NULL)
+    return false;
+
+  FILE *fp = fopen(dictionary_file, "r");
+  if (fp == NULL)
+    return false;
+
+  for (int bucket = 0; bucket < HASH_SIZE; bucket++)
+    hashtable[bucket] = NULL;
+
+  char line[LENGTH];
+  int bucket;
+  int word_length;
+  int count = 0;
+  while (fgets(line, LENGTH, fp)) {
+    node* new_node = calloc(1, sizeof(node));
+    new_node->next = NULL;
+
+    //Remove newline
+    //https://stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input
+    word_length = strcspn(line, "\n");
+    line[word_length] = '\0';
+
+    strncpy(new_node->word, line, word_length);
+
+    bucket = hash_function(line);
+
+    if (hashtable[bucket] != NULL)
+      new_node->next = hashtable[bucket];
+
+    hashtable[bucket] = new_node;
+    count++;
+  }
+
+  fclose(fp);
+  return true;
+}
+
+/**
+ * Array misspelled is populated with words that are misspelled. Returns the length of misspelled.
+ */
+/**
+ * Inputs:
+ *  fp:         A file pointer to the document to check for spelling errors.
+ *  hashtable:  The hash table used to determine spelling
+ *  misspelled: An empty char* array to be populated with misspelled words.
+ *              This array will never be greater than 1000 words long.
+ *
+ * Returns:
+ *  int:        The number of words in the misspelled arary.
+ *
+ * Modifies:
+ *  misspelled: This array will be filled with misspelled words.
+ *
+ * Example:
+ *  int num_misspelled = check_words(text_file, hashtable, misspelled);
+ **/
+int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[])
+{
+  if (fp == NULL || misspelled == NULL)
+    return -1;
+
+  int num_misspelled = 0;
+
+  //int word_length;
+  int max_line = 200;
+  char line[max_line];
+  char *word;
+  while (fgets(line, LENGTH, fp)) {
+    word = strtok(line, " ");
+    while (word != NULL) {
+      if (!check_word(word, hashtable)) {
+        misspelled[num_misspelled] = prep_word(word);
+        num_misspelled++;
+      }
+
+      word = strtok(NULL, " ");
+    }
+  }
+
+  return num_misspelled;
+}
+/*
+int main() {
+
+  hashmap_t map[HASH_SIZE];
+  FILE* check_this = fopen("test1.txt", "r");
+  char* misspelled[MAX_MISSPELLED];
+
+  load_dictionary("wordlist.txt", map);
+  check_words(check_this, map, misspelled);
+
+  return 0;
+}*/
