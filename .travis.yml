@@ -1,8 +1,12 @@
 dist: bionic
 
 script:
+  - sudo apt -y update
   - sudo apt install -y build-essential > /dev/null
   - sudo apt install -y libsubunit-dev libsubunit0
+  - sudo apt install -y check
+  - sudo dpkg -i libsubunit.deb
+  - sudo apt install -f
   - sudo dpkg -i check.deb
   - sudo apt install -f
   #- make
