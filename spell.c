@@ -1,5 +1,6 @@
-fuction check_word(string word, hashmap hashtable[])
+bool check_word(string word, hashmap hashtable[])
 {
+  /*
     Set int bucket to the output of hash_function(word).
     Set hashmap_t cursor equal to hashmap[bucket].
     While cursor is not NULL:
@@ -13,10 +14,12 @@ fuction check_word(string word, hashmap hashtable[])
             return True.
         Set curosr to cursor->next.
     return False.
+  */
 }
 
-function load_dictionary(string dictionary, hashmap hashtable[])
+bool load_dictionary(string dictionary, hashmap hashtable[])
 {
+  /*
     Initialize all values in hash table to NULL.
     Open dict_file from path stored in dictionary.
     If dict_file is NULL:
@@ -32,10 +35,12 @@ function load_dictionary(string dictionary, hashmap hashtable[])
             Set new_node->next to hashtable[bucket].
             Set hashtable[bucket] to new_node.
     Close dict_file.
+  */
 }
 
-function check_words(file fp, hashmap hashtable[], string misspelled[])
+int check_words(file fp, hashmap hashtable[], string misspelled[])
 {
+  /*
     Set int num_misspelled to 0.
     While line in fp is not EOF (end of file):
         Read the line.
@@ -46,4 +51,5 @@ function check_words(file fp, hashmap hashtable[], string misspelled[])
                 Append word to misspelled.
                 Increment num_misspelled.
     Return num_misspelled.
+  */
 }
