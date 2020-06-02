@@ -9,9 +9,10 @@ START_TEST(test_dictionary_normal)
 {
     hashmap_t hashtable[HASH_SIZE];
     ck_assert(load_dictionary(TESTDICT, hashtable));
-    // Here we can test if certain words ended up in certain buckets
-    // to ensure that our load_dictionary works as intended. I leave
-    // this as an exercise.
+
+    node* node = hashtable[552];
+    ck_assert(strcmp(node->word, "first")==0);
+
 }
 END_TEST
 
@@ -23,7 +24,19 @@ START_TEST(test_check_word_normal)
     const char* punctuation_word_2 = "pl.ace";
     ck_assert(check_word(correct_word, hashtable));
     ck_assert(!check_word(punctuation_word_2, hashtable));
-    // Test here: What if a word begins and ends with "?
+
+    const char* num_word = "1234";
+    ck_assert(check_word(num_word, hashtable));
+
+    const char* punctuation = "...";
+    ck_assert(check_word(punctuation, hashtable));
+
+    const char* invalid = "asd'asdf'asdf";
+    ck_assert(!check_word(invalid, hashtable));
+
+    const char* start_punc = "?test";
+    ck_assert(!check_word(start_punc, hashtable));
+
 }
 END_TEST
 
@@ -58,7 +71,12 @@ check_word_suite(void)
     check_word_case = tcase_create("Core");
     tcase_add_test(check_word_case, test_check_word_normal);
     tcase_add_test(check_word_case, test_check_words_normal);
+
+    TCase * test_dictionary = tcase_create("Dict");
+    tcase_add_test(test_dictionary, test_dictionary_normal);
+
     suite_add_tcase(suite, check_word_case);
+    suite_add_tcase(suite, test_dictionary);
 
     return suite;
 }
@@ -69,7 +87,7 @@ main(void)
     int failed;
     Suite *suite;
     SRunner *runner;
-    
+
     suite = check_word_suite();
     runner = srunner_create(suite);
     srunner_run_all(runner, CK_NORMAL);

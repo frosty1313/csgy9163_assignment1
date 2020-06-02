@@ -15,11 +15,15 @@ bool is_apostraphe(char c) {
   return c == 39;
 }
 
+bool is_number(char c) {
+  return (c >= 48 && c <= 57);
+}
+
 /*
   Accepts upper case, lower case or apostraphe's
 */
 bool is_valid_char(char c) {
-  return is_lower(c) || is_upper(c) || is_apostraphe(c);
+  return is_lower(c) || is_upper(c) || is_apostraphe(c) || is_number(c);
 }
 
 /*
@@ -46,6 +50,22 @@ char* prep_word(const char* word) {
   }
 
   return cleaned;
+}
+
+bool all_numbers(const char* word) {
+  for (int i = 0; i < strlen(word); i++) {
+    if (!is_number(word[i]))
+      return false;
+  }
+  return true;
+}
+
+bool all_punctuation(const char* word) {
+  for (int i = 0; i < strlen(word); i++) {
+    if (is_valid_char(word[i]))
+      return false;
+  }
+  return true;
 }
 
 /**
@@ -85,6 +105,23 @@ bool check_word(const char* word, hashmap_t hashtable[])
 
     cursor = cursor->next;
   }
+
+  // Check for all numbers
+  if (!ret && all_numbers(cleaned))
+    ret = true;
+
+  // Handle " ... " or " - " or " !! "
+  if (!ret && all_punctuation(word))
+    ret = true;
+
+  // Check for too many apostraphes
+  int num_apos = 0;
+  for (int i = 0; i < strlen(cleaned); i++) {
+    if (is_apostraphe(cleaned[i]))
+      num_apos++;
+  }
+  if (num_apos > 1 && !all_punctuation(word))
+    ret = false;
 
   free(cleaned);
   return ret;
@@ -174,10 +211,10 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[])
   int num_misspelled = 0;
 
   //int word_length;
-  int max_line = 200;
+  int max_line = 500;
   char line[max_line];
   char *word;
-  while (fgets(line, LENGTH, fp)) {
+  while (fgets(line, max_line, fp)) {
     word = strtok(line, " ");
     while (word != NULL) {
       if (!check_word(word, hashtable)) {
