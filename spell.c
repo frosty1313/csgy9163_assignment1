@@ -30,7 +30,7 @@ bool is_valid_char(char c) {
   Convert a word to lower case and strip trailing punctuation.
 */
 char* prep_word(const char* word) {
-  char* cleaned = (char *)calloc(1, LENGTH);
+  char* cleaned = (char *)calloc(1, strlen(word));
 
   for (int i = 0; i < strlen(word); i++) {
     if (is_upper(word[i]))
@@ -93,9 +93,20 @@ bool check_word(const char* word, hashmap_t hashtable[])
     return false;
 
   char* cleaned = prep_word(word);
-  //printf("Got: %s; Cleaned: %s\n", word, cleaned);
+
   int bucket = hash_function(cleaned);
-  node* cursor = hashtable[bucket];
+  node* cursor;
+  //printf("word: %s, cleaned: %s, bucket %d\n", word, cleaned, bucket);
+
+  //AFL- If a word hashes to a nonvalid bucket, return false
+  if (bucket >= 0 && bucket < HASH_SIZE) {
+    cursor = hashtable[bucket];
+  }
+  else {
+    free(cleaned);
+    return false;
+  }
+
   bool ret = false;
   while (cursor) {
     if (strcmp(cursor->word, cleaned) == 0) {
@@ -216,8 +227,10 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[])
   char *word;
   while (fgets(line, max_line, fp)) {
     word = strtok(line, " ");
+
     while (word != NULL) {
       if (!check_word(word, hashtable)) {
+        // AFL if word is too long, malloc doesn't allocate enough memory
         misspelled[num_misspelled] = prep_word(word);
         num_misspelled++;
       }
@@ -237,10 +250,23 @@ int main(int argc, char* argv[]) {
   }
 
   hashmap_t map[HASH_SIZE];
-  load_dictionary(argv[1], map);
+  //AFL was not checking loading success
+  bool success = load_dictionary(argv[1], map);
 
+  if (!success) {
+    printf("Invalid dictionary file\n");
+    return -1;
+  }
+
+  //AFL was not check if this was a valid file
   FILE* check_this = fopen(argv[2], "r");
+  if (check_this == NULL) {
+    printf("Invalid file to check spelling.\n");
+    return -1;
+  }
+
   char* misspelled[MAX_MISSPELLED];
+
   int wrong = check_words(check_this, map, misspelled);
   fclose(check_this);
 
@@ -251,4 +277,5 @@ int main(int argc, char* argv[]) {
     free(misspelled[i]);
 
   return 0;
-}*/
+}
+*/
