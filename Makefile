@@ -31,3 +31,4 @@ clean:
 
 cleanall:clean
 	rm spell_check
+	rm test_main

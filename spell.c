@@ -78,8 +78,10 @@ bool check_word(const char* word, hashmap_t hashtable[])
   node* cursor = hashtable[bucket];
   bool ret = false;
   while (cursor) {
-    if (strcmp(cursor->word, cleaned) == 0)
+    if (strcmp(cursor->word, cleaned) == 0) {
       ret = true;
+      break;
+    }
 
     cursor = cursor->next;
   }
@@ -189,15 +191,27 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[])
 
   return num_misspelled;
 }
+
 /*
-int main() {
+int main(int argc, char* argv[]) {
+  if (argc < 3) {
+    printf("Usage: ./spell_check dictionary file_to_check\n");
+    return 1;
+  }
 
   hashmap_t map[HASH_SIZE];
-  FILE* check_this = fopen("test1.txt", "r");
-  char* misspelled[MAX_MISSPELLED];
+  load_dictionary(argv[1], map);
 
-  load_dictionary("wordlist.txt", map);
-  check_words(check_this, map, misspelled);
+  FILE* check_this = fopen(argv[2], "r");
+  char* misspelled[MAX_MISSPELLED];
+  int wrong = check_words(check_this, map, misspelled);
+  fclose(check_this);
+
+  printf("%d words misspelled\n", wrong);
+  destroy_dict(map);
+
+  for (int i = 0; i < wrong; i++)
+    free(misspelled[i]);
 
   return 0;
 }*/
