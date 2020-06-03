@@ -239,7 +239,7 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[])
   return num_misspelled;
 }
 
-
+/*
 int main(int argc, char* argv[]) {
   if (argc < 3) {
     printf("Usage: ./spell_check dictionary file_to_check\n");
@@ -275,3 +275,4 @@ int main(int argc, char* argv[]) {
 
   return 0;
 }
+*/
