@@ -30,7 +30,7 @@ bool is_valid_char(char c) {
   Convert a word to lower case and strip trailing punctuation.
 */
 char* prep_word(const char* word) {
-  char* cleaned = (char *)calloc(1, strlen(word));
+  char* cleaned = (char *)calloc(1, strlen(word)+1);
 
   for (int i = 0; i < strlen(word); i++) {
     if (is_upper(word[i]))
@@ -86,17 +86,13 @@ bool all_punctuation(const char* word) {
  **/
 bool check_word(const char* word, hashmap_t hashtable[])
 {
-  if (word == NULL)
-    return false;
-
-  if (strlen(word) > LENGTH || strlen(word) < 1)
+  if (word == NULL || strlen(word) > LENGTH || strlen(word) < 1)
     return false;
 
   char* cleaned = prep_word(word);
 
   int bucket = hash_function(cleaned);
   node* cursor;
-  //printf("word: %s, cleaned: %s, bucket %d\n", word, cleaned, bucket);
 
   //AFL- If a word hashes to a nonvalid bucket, return false
   if (bucket >= 0 && bucket < HASH_SIZE) {
@@ -221,8 +217,7 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[])
 
   int num_misspelled = 0;
 
-  //int word_length;
-  int max_line = 500;
+  int max_line = 1024;
   char line[max_line];
   char *word;
   while (fgets(line, max_line, fp)) {
@@ -230,8 +225,10 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[])
 
     while (word != NULL) {
       if (!check_word(word, hashtable)) {
-        // AFL if word is too long, malloc doesn't allocate enough memory
-        misspelled[num_misspelled] = prep_word(word);
+        // AFL if word was too long, malloc doesn't allocate enough memory
+        // AFL check to make sure num_misspelled is less than the max
+        if (num_misspelled < MAX_MISSPELLED)
+          misspelled[num_misspelled] = prep_word(word);
         num_misspelled++;
       }
 
@@ -242,7 +239,7 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[])
   return num_misspelled;
 }
 
-/*
+
 int main(int argc, char* argv[]) {
   if (argc < 3) {
     printf("Usage: ./spell_check dictionary file_to_check\n");
@@ -258,10 +255,10 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  //AFL was not check if this was a valid file
+  //AFL was not checking if this was a valid file
   FILE* check_this = fopen(argv[2], "r");
   if (check_this == NULL) {
-    printf("Invalid file to check spelling.\n");
+    printf("Invalid file to check spelling for.\n");
     return -1;
   }
 
@@ -278,4 +275,3 @@ int main(int argc, char* argv[]) {
 
   return 0;
 }
-*/

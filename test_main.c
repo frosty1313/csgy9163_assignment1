@@ -37,6 +37,9 @@ START_TEST(test_check_word_normal)
     const char* start_punc = "?test";
     ck_assert(!check_word(start_punc, hashtable));
 
+    const char* long_word = "asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfa";
+    ck_assert(!check_word(long_word, hashtable));
+
 }
 END_TEST
 
@@ -59,6 +62,12 @@ START_TEST(test_check_words_normal)
     ck_assert_msg(strcmp(misspelled[0], expected[0]) == 0);
     ck_assert_msg(strcmp(misspelled[1], expected[1]) == 0);
     ck_assert_msg(strcmp(misspelled[2], expected[2]) == 0);
+    fclose(fp);
+
+    fp = fopen("test2.txt", "r");
+    num_misspelled = check_words(fp, hashtable, misspelled);
+    ck_assert(num_misspelled == 138);
+
 }
 END_TEST
 
