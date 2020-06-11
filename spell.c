@@ -94,7 +94,7 @@ bool check_word(const char* word, hashmap_t hashtable[])
   int bucket = hash_function(cleaned);
   node* cursor;
 
-  //AFL- If a word hashes to a nonvalid bucket, return false
+  //AFL error: If a word hashes to a nonvalid bucket, return false
   if (bucket >= 0 && bucket < HASH_SIZE) {
     cursor = hashtable[bucket];
   }
@@ -225,8 +225,8 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[])
 
     while (word != NULL) {
       if (!check_word(word, hashtable)) {
-        // AFL if word was too long, malloc doesn't allocate enough memory
-        // AFL check to make sure num_misspelled is less than the max
+        // AFL error: if word was too long, malloc doesn't allocate enough memory
+        // AFL error: check to make sure num_misspelled is less than the max
         if (num_misspelled < MAX_MISSPELLED)
           misspelled[num_misspelled] = prep_word(word);
         num_misspelled++;
@@ -239,7 +239,7 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[])
   return num_misspelled;
 }
 
-/*
+
 int main(int argc, char* argv[]) {
   if (argc < 3) {
     printf("Usage: ./spell_check dictionary file_to_check\n");
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
   }
 
   hashmap_t map[HASH_SIZE];
-  //AFL was not checking loading success
+  //AFL error: was not checking loading success
   bool success = load_dictionary(argv[1], map);
 
   if (!success) {
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  //AFL was not checking if this was a valid file
+  //AFL error: was not checking if this was a valid file
   FILE* check_this = fopen(argv[2], "r");
   if (check_this == NULL) {
     printf("Invalid file to check spelling for.\n");
@@ -270,9 +270,13 @@ int main(int argc, char* argv[]) {
   printf("%d words misspelled\n", wrong);
   destroy_dict(map);
 
-  for (int i = 0; i < wrong; i++)
+  //AFL error: was using just total wrong and double freeing at misspelled[MAX_MISSPELLED+1]
+  int size = (wrong > MAX_MISSPELLED) ? MAX_MISSPELLED : wrong;
+
+  for (int i = 0; i < size; i++) {
+    if (misspelled[i])
     free(misspelled[i]);
+  }
 
   return 0;
 }
-*/
